@@ -15,6 +15,7 @@ You are able to -
 - organize files by type into pre-defined folders
 - delete all files by their file type, 
 - delete specific files
+- delete specific sub-directories
 - move specific files
 - automate the entire process
 
