@@ -18,7 +18,7 @@ file_list = []
 file_ext_list = []
 
 def list_all_files_in_directory(): #IMPLEMENTED ABOVE LIST COMPREHENSION.  NEED TO TEST
-    global console
+    
     global file_list
     global file_ext_list
 
@@ -53,7 +53,7 @@ def list_all_files_in_directory(): #IMPLEMENTED ABOVE LIST COMPREHENSION.  NEED 
 
 def list_all_subdirectories(): #WORKS BUT ALSO RETURNS ALL FILES IN THE DIRECTORY.  NEED TO LIMIT TO DIRECTORIES ONLY
     
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -68,7 +68,7 @@ def list_all_subdirectories(): #WORKS BUT ALSO RETURNS ALL FILES IN THE DIRECTOR
     return subdirectories
 
 def list_files_by_type(): #COMPLETE
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -92,7 +92,7 @@ def list_files_by_type(): #COMPLETE
 
 def change_directory(): #LISTS FILES AS WELL.  NEED TO LIMIT TO DIRECTORIES ONLY
     
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -153,15 +153,15 @@ def delete_subdirectory():
     cwd = os.getcwd()
     console.print(f"These are the available directories within the {cwd} directory: ", style="bold green")
     list_all_subdirectories()
-    prompt = Prompt.ask("Do you want to continue with deleting a subdirectory?", choices=["yes","no"], style="bold green")
+    prompt = Prompt.ask("Do you want to continue with deleting a subdirectory?", choices=["yes","no"])
     if prompt == "no":
         console.print("Exiting out of the subdirectory deletion option", style="bold red")
         return
     else:
-        subdirectory_to_delete = Prompt.ask("What is the name of the subdirectory you would like to delete? Please provide the name of the directory only, not the full path", style="bold green")
+        subdirectory_to_delete = Prompt.ask("What is the name of the subdirectory you would like to delete? Please provide the name of the directory only, not the full path")
         if os.path.exists(subdirectory_to_delete):
             console.print(f"Confirm deletion of {subdirectory_to_delete}", style="bold red")
-            confirm = Prompt.ask("Yes or No?", choices=['yes','no'], style="bold green")
+            confirm = Prompt.ask("Yes or No?", choices=['yes','no'])
             if confirm == "no":
                 console.print("Exiting out of subdirectory deletion option", style="bold red")
                 return
@@ -170,7 +170,7 @@ def delete_subdirectory():
                 console.print(f"Deleted {subdirectory_to_delete} directory", style="bold red")
 
 def organize_files_by_type():
-    global console
+    
     global file_list
     global file_ext_list
 
@@ -272,7 +272,7 @@ def organize_files_by_type():
         return file_list, file_ext_list
 
 def delete_files_by_type(): #COMPLETED (?) - NEED TO TEST
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -296,7 +296,7 @@ def delete_files_by_type(): #COMPLETED (?) - NEED TO TEST
     return file_list
 
 def delete_specific_files(): #TESTED AND COMPLETED!
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -308,8 +308,8 @@ def delete_specific_files(): #TESTED AND COMPLETED!
     user_file_name_question = Prompt.ask("Do you know the name of the file you want to delete?", choices=["yes", "no"])
 
     if user_file_name_question == "no":
-        log_action("List files requested before deletion")
-        list_all_files_in_directory()
+        console.print("Locate the file you want to delete before proceeding.  Exiting file deletion process...", style="bold red")
+        return
     else:
         file_name = Prompt.ask("What is the name of the file you want to delete? Please include the file extension, e.g. file.txt")
         if file_name in file_list:
@@ -336,7 +336,7 @@ def delete_specific_files(): #TESTED AND COMPLETED!
                 
 def move_specific_files(): #COMPLETED (?) - NEED TO TEST 
     
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -344,7 +344,7 @@ def move_specific_files(): #COMPLETED (?) - NEED TO TEST
     user_file_name_question = Prompt.ask("Do you know the name of the file you want to move and do you know the directory you want to move it to?", choices=["yes", "no"])
 
     if user_file_name_question == "no":
-        list_all_files_in_directory()
+        console.print("Locate the file you want to move before proceeding.  Exiting the file movement process...", style="bold red")
     else:
         file_name = Prompt.ask("What is the name of the file you want to move? Please include the file extension, e.g. file.txt")
         if file_name in file_list:
@@ -378,7 +378,7 @@ def move_specific_files(): #COMPLETED (?) - NEED TO TEST
 
 def automation(): #USE WATCHDOG TO MONITOR THE DOWNLOADS FOLDER AND ORGANIZE AUTOMATICALLY
     
-    global console
+    
     global file_list
 
     cwd = os.getcwd()
@@ -473,19 +473,19 @@ def zug_initial_user_query(): #TESTED AND COMPLETED
 
 def main_program_loop():
 
-    global console
+    
     global file_list
     while True:
         # Display the configuration
         console.print(Panel(
                 title="[bold yellow]--- Configuration Menu --- [/bold yellow]",
                 border_style = "bright_blue",
-                renderable= "[bold white]1. View All Files\n2. List All Subdirectories\n3. List Files By Type\n4. Change Directory\n5. Organize Files By Type\n6. Delete Files By Type\n7. Delete Specific Files\n8. Move Specific Files\n9. Exit\n10. Automation[/bold white]"
+                renderable= "[bold white]1. View All Files\n2. List All Subdirectories\n3. List Files By Type\n4. Change Directory\n5. Organize Files By Type\n6. Delete Files By Type\n7. Delete Specific Files\n8. Delete Specific Subdirectory\n9. Move Specific Files\n10. Exit\n11. Automation[/bold white]"
                 ))
         console.print("\n")
 
         # Get the user's choice
-        choice = Prompt.ask("What would you like to do?", choices=[str(i) for i in range(1,11)])
+        choice = Prompt.ask("What would you like to do?", choices=[str(i) for i in range(1,12)])
 
         # View all files in the directory
         if choice == "1":
@@ -515,23 +515,28 @@ def main_program_loop():
         elif choice == "7":
             delete_specific_files()
 
-        #Move specific files
+        #Delete specific subdirectory
         elif choice == "8":
-            move_specific_files()
+            delete_subdirectory()
 
-        # Exit the program
+        # Move specific files
         elif choice == "9":
+            move_specific_files()
+        
+        #Exit the program
+        elif choice == "10":
+            console.print("Exiting program...", style="bold red")
             display_goodbye_banner()
             sys.exit()
-        
+            
         # Automation - Let the program organize the files for you in the background as a running process
-        elif choice == "10":
+        elif choice == "11":
             console.print("Automation is not available yet", style="bold red")
             continue
 
 def main(): #IN PROGRESS - NEED TO COMPLETE THE OTHER FUNCTIONS
 
-    global console
+    
     global file_list
 
     # Display the welcome banner
