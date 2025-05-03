@@ -22,9 +22,6 @@ name = ""
 
 class Watcher:
 
-    global name
-    console.print(f"Current user name is {name} before init in the code", style="bold red")
-
     def __init__(self): 
         self.observer = Observer() #The observer will be used to monitor the directory for changes and will run in the background.  The observer will be used to monitor the directory for changes and will run in the background.
         self.name = name
@@ -47,12 +44,70 @@ class Handler(FileSystemEventHandler): # this class handles events triggered by 
     @staticmethod #this is a static method.  it belongs to the class, not the instance of the class.  
 
     def on_any_event(event):
-        if event.is_directory:
-            return None # Ignore directory events
+
+        cwd = os.getcwd() # Get the current working directory and save it to cwd
+        
+        if event.event_type == 'created' and event.is_directory:
+            console.print(f"New directory found in Downloads folder: {event.src_path}", style="bold green")
+            console.print("Ignoring new directory creation event...", style="bold green")
+            return
+       
         elif event.event_type == 'created':
             console.print(f"New file found in Downloads folder: {event.src_path}", style="bold green")
+            console.print("Organizing files...", style="bold green")
+
+            file_size = os.path.getsize(event.src_path) # Get the size of the file and save it to file_size
+            while True:
+                time.sleep(10) # Check for changes every 10 seconds
+                file_size_check = os.path.getsize(event.src_path)
+                if file_size_check == file_size:
+                    console.print(f"File appears to have finished downloading: {event.src_path}", style="bold green")
+                    break
+                else:
+                    console.print(f"File is still downloading: {event.src_path}", style="bold green")
+                    file_size = file_size_check
+                    continue
+
+            split_file_name = event.src_path.split("\\")
+            file_name = split_file_name[-1]
+
+            failed_moves = []
+
+            try:
+                target_folder = None
+                if event.src_path.endswith((".jpg", ".jpeg", ".png", ".gif")):
+                    target_folder = "Images"
+                elif event.src_path.endswith((".doc", ".docx", ".pdf", ".txt")):
+                    target_folder = "Documents"
+                elif event.src_path.endswith((".exe", ".msi", ".bin", ".bat")):
+                    target_folder = "Executables"
+                elif event.src_path.endswith((".zip", ".tar", ".gz", ".7z", ".tgz")):
+                    target_folder = "Zip_Files"
+                elif event.src_path.endswith((".xlsx")):
+                    target_folder = "XLSX_Files"
+                elif event.src_path.endswith((".iso")):
+                    target_folder = "ISO_Files"
+                elif event.src_path.endswith((".mp4", ".mp3")):
+                    target_folder = "Audio"
+                elif event.src_path.endswith((".torrent")):
+                    target_folder = "Torrent"
+                elif event.src_path.endswith((".ini")):
+                    target_folder = "Ini_Files"
+                elif event.src_path.endswith((".py", ".java", ".cpp", ".c", ".html", ".css", ".js", ".php", ".sql", ".json")):
+                    target_folder = "Programming_Files"
+                elif event.src_path.endswith((".part")):
+                    target_folder = "Incomplete_Files"
+
+                if target_folder:
+                    shutil.move(file_name, f"{cwd}/{target_folder}", copy_function=shutil.copy2)
+                    console.print(f"Moved {file_name} to {target_folder}", style="bold green")
+
+                else:
+                    console.print(f"File {file} does not match any of the current categories", style="bold red")
             
-            # Call the function to organize files by type
+            except (shutil.Error, OSError) as e:
+                failed_moves.append((file, str(e)))
+                console.print(f"Failed to move {file_name}: {e}", style="bold red")
 
     
 
