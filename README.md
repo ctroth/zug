@@ -1,6 +1,3 @@
-Sure! Here's the entire `README.md` in a single Markdown block you can copy easily:
-
-````markdown
 # 🗂️ Zug File Organizer
 
 Zug File Organizer is a powerful command-line tool built with Python that helps you clean up and organize your **Downloads** folder automatically or manually. It uses `Rich` for a colorful CLI interface and `Watchdog` to monitor changes in real time.
