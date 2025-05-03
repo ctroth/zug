@@ -12,10 +12,49 @@ from rich.progress import Progress, track, SpinnerColumn, TextColumn, BarColumn,
 import time
 from pyfiglet import Figlet
 from datetime import datetime
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 console = Console()
 file_list = []
 file_ext_list = []
+name = ""
+
+class Watcher:
+
+    global name
+    console.print(f"Current user name is {name} before init in the code", style="bold red")
+
+    def __init__(self): 
+        self.observer = Observer() #The observer will be used to monitor the directory for changes and will run in the background.  The observer will be used to monitor the directory for changes and will run in the background.
+        self.name = name
+        self.watcher_directory = f"C:/Users/{self.name}/Downloads"
+
+    def run(self): 
+        event_handler = Handler() # the event handler is the class that will handle the events that are triggered by the observer.  it works by 
+        self.observer.schedule(event_handler, self.watcher_directory, recursive=False) #the observer schedules the event handler to watch the directory for changes.  recursive means that it will look at subdirectories too.  it is set to false as we only want to look at the main Downloads directory
+        self.observer.start() #starts the observer
+        console.print("Monitoring the Downloads folder for changes...", style="bold green")
+        try:
+            while True:
+                time.sleep(5) # Check for changes every 5 seconds
+        except KeyboardInterrupt:
+            self.observer.stop() # This will stop the observer when the user presses CTRL + C
+        self.observer.join() # This will run the observer in the background and check for changes every hour
+
+class Handler(FileSystemEventHandler): # this class handles events triggered by the observer.  it is a subclass of FileSystemEventHandler.  
+
+    @staticmethod #this is a static method.  it belongs to the class, not the instance of the class.  
+
+    def on_any_event(event):
+        if event.is_directory:
+            return None # Ignore directory events
+        elif event.event_type == 'created':
+            console.print(f"New file found in Downloads folder: {event.src_path}", style="bold green")
+            
+            # Call the function to organize files by type
+
+    
 
 def list_all_files_in_directory(): #IMPLEMENTED ABOVE LIST COMPREHENSION.  NEED TO TEST
     
@@ -380,27 +419,35 @@ def automation(): #USE WATCHDOG TO MONITOR THE DOWNLOADS FOLDER AND ORGANIZE AUT
     
     
     global file_list
+    global name
 
     cwd = os.getcwd()
     folders = ["Images", "Documents", "Executables", "Zip_Files", "XLSX_Files", "ISO_Files", "Audio", "Torrent", "Ini_Files", "Programming_Files", "Incomplete_Files"]
 
-    console.print(f"""You have selected the automation option.  The program will run in the background, organize your Downloads folder on a defined interval, and either delete files based off of user defined criteria such as file type, size, or age. 
-                                The program will also create a log file that will record all actions taken by the program.  You can choose to stop the program at any time by pressing CTRL + C.  Would you like to continue?""", style="bold green")
-    
-    console.print(f"The followiong folders will be created in your Downloads folder: ", style="bold green")
-    for folder in folders:
-        console.print(folder, style="bold green")
+    if cwd != f"C:/Users/{name}/Downloads":
+        console.print("Changing directory to Downloads folder", style="bold red")
+        os.chdir(f"C:/Users/{name}/Downloads")
+        cwd = os.getcwd()
+        print(f"Current working directory: {cwd}")
+
+    console.print(f"""You have selected the automation option.  The program will run in the background, organize your Downloads folder on a defined interval and delete files based off of user defined criteria such as file type, size, or age. You can choose to stop the program at any time by pressing CTRL + C. """, style="bold green")
 
     user_query = Prompt.ask("Would you like to continue?", choices=["yes", "no"])
-
-    if user_query == "no":
+    
+    if user_query  == "no":
         console.print("Exiting out of automation option", style="bold red")
         return
     else:
         console.print("Automation is starting...", style="bold green")
-
-        while True:
-            pass
+    
+    console.print(f"The followiong folders will be created in your Downloads folder: ", style="bold green")
+    for folder in folders:
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+            console.print(f"Created {folder} directory...")
+            
+    watch = Watcher() # creates an instance of the Watcher class
+    watch.run() # runs the watcher class which will monitor the Downloads folder for changes
 
 def display_welcome_banner(): #TESTED AND COMPLETED
     fig = Figlet(font="slant")
@@ -437,6 +484,8 @@ def display_goodbye_banner(): #TESTED AND COMPLETED
     console.print(panel)
 
 def zug_initial_user_query(): #TESTED AND COMPLETED
+
+    global name
     
     name = Prompt.ask("What is the username you are logged in as on your computer? [bold red] *CASE SENSITIVE* [/bold red]")
 
@@ -531,13 +580,9 @@ def main_program_loop():
             
         # Automation - Let the program organize the files for you in the background as a running process
         elif choice == "11":
-            console.print("Automation is not available yet", style="bold red")
-            continue
+            automation()
 
 def main(): #IN PROGRESS - NEED TO COMPLETE THE OTHER FUNCTIONS
-
-    
-    global file_list
 
     # Display the welcome banner
     display_welcome_banner()
@@ -547,7 +592,6 @@ def main(): #IN PROGRESS - NEED TO COMPLETE THE OTHER FUNCTIONS
 
     # Main program loop
     main_program_loop()
-
 
 if __name__ == '__main__':
     main()
